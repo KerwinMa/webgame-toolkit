@@ -1,0 +1,888 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   xmlns:ns1="*"
+					   xmlns:Modules="Modules.*"
+					   width="1179"
+					   height="660"
+					   creationComplete="loadConfig()"
+					   backgroundColor="#595959"
+					   resize="resetSize()"
+					   title="MapEdit"
+					   showStatusBar="false" viewSourceURL="srcview/index.html">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<mx:HBox x="0"
+			 y="0"
+			 width="100%"
+			 verticalAlign="middle">
+		<Modules:MapMenuBar id="mapMenuBar"
+							x="27"
+							y="10"/>
+		<!--
+		<mx:Button label="地图设置"
+				   click="button2_clickHandler(event)" />
+		-->
+		<mx:ColorPicker id="gridColorCP"
+						toolTip="设置线条颜色"
+						change="gridColorCP_changeHandler(event)"
+						selectedColor="#66FF83"/>
+		<s:HSlider change="hslider1_changeHandler(event)"
+				   id="gridAlphaSli"
+				   minimum="0"
+				   maximum="100"
+				   value="80"
+				   toolTip="设置线条透明度"/>
+		<s:CheckBox label="显示网格"
+					selected="true"
+					click="checkbox1_clickHandler(event)"
+					id="gridVisCB"/>
+		<mx:Button id="switchGridLevelBtn"
+				   width="21"
+				   height="19"
+				   toolTip="将网格放在物件图层的下面，背景图层上面"
+				   icon="@Embed(source='images/image86.png')"
+				   click="switchGridLevelBtn_clickHandler(event)"/>
+	</mx:HBox>
+
+	<s:BorderContainer x="0"
+					   y="20"
+					   width="100%"
+					   height="25"
+					   backgroundAlpha="0.0">
+		<mx:PopUpButton id="popB"
+						label="缩放:100%"
+						width="105"
+						x="875"
+						y="1"/>
+		<s:Label x="753"
+				 y="2"
+				 id="onMapSite"
+				 toolTip="鼠标在地图上的位置"
+				 width="105"
+				 height="20"
+				 fontSize="18"
+				 verticalAlign="middle"
+				 textAlign="center"/>
+		<mx:HBox verticalAlign="middle"
+				 contentBackgroundColor="#3D3D3D"
+				 width="749">
+			<s:Label text="地图名字："/>
+			<mx:TextInput id="mapName"
+						  focusIn="IME.enabled = true;"
+						  keyDown="TI_keyDownHandler(event)"
+						  toolTip="输入地图名称"/>
+			<s:Label text="场景描述："/>
+			<mx:TextInput width="268"
+						  id="mapDescription"
+						  focusIn="IME.enabled = true;"
+						  keyDown="TI_keyDownHandler(event)"
+						  toolTip="输入地图描述"/>
+
+		</mx:HBox>
+
+	</s:BorderContainer>
+	<mx:Button x="14"
+			   y="56"
+			   width="100"
+			   label="更改背景图片"
+			   click="button1_clickHandler(event)"/>
+	<s:SkinnableContainer id="mapBoxCon1"
+						  width="800"
+						  height="600"
+						  x="180"
+						  y="46"
+						  backgroundColor="#363636">
+
+		<s:SkinnableContainer id="mapBoxCon2"
+							  width="788"
+							  height="583"
+							  x="6"
+							  y="6"
+							  backgroundColor="#000000">
+			<s:Scroller x="0"
+						id="mapScroller"
+						y="0"
+						width="100%"
+						height="100%"
+						mouseWheel="scroller1_mouseWheelHandler(event)"
+						updateComplete="mapScroller_updateCompleteHandler(event)">
+				<s:Group>
+					<s:Group id="mapAreaGroup"
+							 width="1000"
+							 height="600">
+						<Modules:MapMain id="mapMain"/>
+					</s:Group>
+				</s:Group>
+			</s:Scroller>
+		</s:SkinnableContainer>
+
+	</s:SkinnableContainer>
+	<s:BorderContainer x="978"
+					   y="46"
+					   width="200"
+					   height="600"
+					   backgroundAlpha="0.0"
+					   id="leftBC">
+		<Modules:NPCSetPanel x="-1"
+							 y="256"
+							 id="NPCSetPanelIns"
+							 height="121">
+		</Modules:NPCSetPanel>
+		<s:BorderContainer x="-1"
+						   y="-5"
+						   width="200"
+						   height="144"
+						   backgroundColor="#595959">
+			<s:Label x="12"
+					 y="15"
+					 text="选择格子类型"/>
+			<mx:PopUpButton x="12"
+							y="45"
+							id="gridTypeList">
+			</mx:PopUpButton>
+			<mx:ColorPicker x="111"
+							y="45"
+							id="gridColor"
+							selectedColor="#00FF00"
+							enabled="false"
+							toolTip="当前绘制格子的颜色"/>
+			<s:CheckBox x="12"
+						y="104"
+						label="是否编辑地图"
+						id="isEditCB"
+						selected="false"
+						change="isEditChang()"/>
+			<s:HSlider x="12"
+					   y="81"
+					   id="gridAlpha"
+					   maximum="100"
+					   minimum="0"
+					   value="25"
+					   change="gridAlpha_changeHandler(event)"
+					   toolTip="格子的透明度"/>
+			<s:CheckBox x="116"
+						y="78"
+						label="显示格子"
+						id="gridBoxVisCB"
+						click="gridBoxVisCB_clickHandler(event)"
+						selected="true"/>
+			<s:CheckBox x="114"
+						y="105"
+						label="范围编辑"
+						id="isAreaEdit"
+						selected="false"
+						change="isAreaEditChang()"/>
+		</s:BorderContainer>
+		<s:BorderContainer x="-1"
+						   y="144"
+						   width="200"
+						   height="100"
+						   backgroundColor="#595959"
+						   contentBackgroundColor="#3D3D3D">
+			<s:Label x="10"
+					 y="10"
+					 text="位置和大小"/>
+			<s:Label x="0"
+					 y="32"
+					 text="A_X:"
+					 width="30"
+					 textAlign="right"/>
+			<s:TextInput x="32"
+						 y="26"
+						 width="60"
+						 id="xTI"
+						 keyDown="TI_keyDownHandler(event)"
+						 toolTip="选择目标的X位置"/>
+			<s:Label x="100"
+					 y="32"
+					 text="A_Y:"
+					 width="30"
+					 textAlign="right"/>
+			<s:TextInput x="132"
+						 y="26"
+						 width="60"
+						 id="yTI"
+						 keyDown="TI_keyDownHandler(event)"
+						 toolTip="选择目标的Y位置"/>
+			<s:Label x="0"
+					 y="68"
+					 text="宽度:"
+					 width="30"
+					 textAlign="right"/>
+			<s:TextInput x="32"
+						 y="60"
+						 width="60"
+						 id="widthTI"
+						 keyDown="TI_keyDownHandler(event)"
+						 toolTip="选择目标的宽度"/>
+			<s:Label x="100"
+					 y="68"
+					 text="高度:"
+					 width="30"
+					 textAlign="right"/>
+			<s:TextInput x="132"
+						 y="60"
+						 width="60"
+						 id="heightTI"
+						 keyDown="TI_keyDownHandler(event)"
+						 toolTip="选择目标的高度"/>
+		</s:BorderContainer>
+	</s:BorderContainer>
+	<s:Button x="101"
+			  y="103"
+			  label="添加NPC"
+			  click="button4_clickHandler(event)"/>
+	<s:List x="0"
+			y="131"
+			width="180"
+			height="515"
+			contentBackgroundColor="#595959"
+			id="objectsList"
+			change="objectsList_changeHandler(event)">
+	</s:List>
+	<s:Button x="10"
+			  y="102"
+			  label="添加传送点"
+			  click="button5_clickHandler(event)"/>
+
+	<fx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			import Data.StaticFunctions;
+			
+			import map.NPC;
+			import map.ObjectView;
+			
+			import mx.controls.Menu;
+			import mx.events.ColorPickerEvent;
+			import mx.events.FlexEvent;
+			import mx.events.FlexNativeMenuEvent;
+			import mx.events.FlexNativeWindowBoundsEvent;
+			import mx.events.MenuEvent;
+			import mx.events.StateChangeEvent;
+			import mx.managers.FocusManager;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
+
+			[@Embed(source = 'images/image86.png')]
+			public var icon1 : Class;
+			[@Embed(source = 'images/image87.png')]
+			public var icon2 : Class;
+
+			/** 缩放下拉列表 */
+			private var myMenu : Menu;
+			/** 掩码下拉列表 */
+			private var myMenu2 : Menu;
+
+			/**
+			 * 	用于记录滚动组件缩放前的比例
+			 * 	是的缩放后中心位置与缩放前一样
+			 **/
+			private var HSite : Number = 0;
+			private var VSite : Number = 0;
+
+			private var loader : Loader;
+
+			/**
+			 * 	加载配置文件
+			 * */
+			public function loadConfig() : void
+			{
+				loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, readFileData);
+				loader.load(new URLRequest("swf/Config.swf"));
+			}
+
+			/**
+			 * 读取配置文件数据
+			 */
+			protected function readFileData(event : Event) : void
+			{
+				var domain : ApplicationDomain = event.target.applicationDomain as ApplicationDomain;
+				AllRefs.mapSacleList = loader.contentLoaderInfo.content["mapSacleList"] as Array;
+				AllRefs.yanMaData = loader.contentLoaderInfo.content["yanMaData"] as Array;
+				AllRefs.defultGridType = loader.contentLoaderInfo.content["defultGridType"] as int;
+				AllRefs.mapPieceSize = loader.contentLoaderInfo.content["mapPieceSize"] as int;
+
+				init();
+			} // end function
+
+			/**
+			 * 	初始化各组件
+			 *
+			 */
+			public function init() : void
+			{
+
+				AllRefs.init();
+				AllRefs.mapMaker = this;
+				AllRefs.mapMain = mapMain;
+				AllRefs.gridLayer.init();
+				AllRefs.focusManager = new FocusManager(this);
+				AllRefs.focusManager.setFocus(AllRefs.mapMaker.mapScroller);
+
+				for each (var gbox : SkinnableContainer in AllRefs.gridLayer.gridsBoxList)
+				{
+					gbox.alpha = gridAlpha.value / gridAlpha.maximum;
+				}
+
+				initMenu();
+				initMenu2();
+				this.NPCSetPanelIns.visible = false;
+
+				mapScroller.horizontalScrollBar.addEventListener(Event.CHANGE, onHChang);
+
+				this.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			}
+
+			/**
+			 * 	改变格子线条的透明度
+			 *
+			 */
+			protected function hslider1_changeHandler(event : Event) : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.gridLayer.changeGridAlpha(this.gridAlphaSli.value / this.gridAlphaSli.maximum);
+			}
+
+			/**
+			 * 	改变格子线条的颜色
+			 */
+			protected function gridColorCP_changeHandler(event : ColorPickerEvent) : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.gridLayer.changeGridColor(this.gridColorCP.selectedColor);
+			}
+
+			/**
+			 * 	点击“选择背景”按钮
+			 *
+			 */
+			protected function button1_clickHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.fileChoser.choseBackGround();
+			}
+
+
+			protected function button2_clickHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.addPopUp(AllRefs.mapSetWindow, this)
+				PopUpManager.centerPopUp(AllRefs.mapSetWindow);
+			}
+
+			/**
+			 * 	设置格子线条是否可见
+			 */
+			protected function checkbox1_clickHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.gridLayer.setGridVisible(this.gridVisCB.selected);
+			}
+
+			protected function switchGridLevelBtn_clickHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.mapMain.changeGridLevel();
+				if (AllRefs.isGridOnTop == false)
+				{
+					this.switchGridLevelBtn.setStyle("icon", icon1);
+					this.switchGridLevelBtn.toolTip = "将网格放在物件图层的下面，背景图层上面";
+				}
+				else
+				{
+					this.switchGridLevelBtn.setStyle("icon", icon2);
+					this.switchGridLevelBtn.toolTip = "将网格放在所有图层的上面";
+				}
+			}
+
+
+			protected function button3_clickHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.fileChoser.addBackGroundObject();
+			}
+
+			public function resetSize() : void
+			{
+				if (this.mapBoxCon1 == null)
+				{
+					return;
+				}
+				this.mapBoxCon1.width = this.stage.stageWidth - 380 /* 180 + 200 */;
+				this.mapBoxCon1.height = this.stage.stageHeight - this.mapBoxCon1.y;
+				this.mapBoxCon2.width = this.mapBoxCon1.width - 12;
+				this.mapBoxCon2.height = this.stage.stageHeight - this.mapBoxCon1.y - 12;
+				this.objectsList.height = this.stage.stageHeight - this.objectsList.y - 12;
+				if (this.mapAreaGroup.width * this.mapAreaGroup.scaleX < this.mapBoxCon2.width)
+				{
+					this.mapAreaGroup.x = int((this.mapBoxCon2.width - this.mapAreaGroup.width * this.mapAreaGroup.scaleX) / 2);
+				}
+				else
+				{
+					this.mapAreaGroup.x = 0;
+				}
+				if (this.mapAreaGroup.height * this.mapAreaGroup.scaleX < this.mapBoxCon2.height)
+				{
+					this.mapAreaGroup.y = int((this.mapBoxCon2.height - this.mapAreaGroup.height * this.mapAreaGroup.scaleX) / 2);
+				}
+				else
+				{
+					this.mapAreaGroup.y = 0;
+				}
+
+
+				//缩放下拉列表位置
+				popB.x = this.mapBoxCon1.x + this.mapBoxCon1.width - popB.width;
+				onMapSite.x = popB.x - onMapSite.width;
+				//右边的面板
+				leftBC.x = this.mapBoxCon1.x + this.mapBoxCon1.width;
+				leftBC.height = this.mapBoxCon1.height;
+
+				return;
+			}
+
+			/**
+			 *
+			 * 初始化缩放列表
+			 *
+			 **/
+			private function initMenu() : void
+			{
+				myMenu = new Menu();
+				var dp : Object = AllRefs.mapSacleList;
+				myMenu.dataProvider = dp;
+				myMenu.selectedIndex = 9;
+				myMenu.addEventListener("itemClick", itemClickHandler);
+				popB.popUp = myMenu;
+				popB.label = myMenu.dataProvider[myMenu.selectedIndex].label;
+			}
+
+			/**
+			 *
+			 * 点击缩放列表选项
+			 *
+			 */
+			private function itemClickHandler(event : MenuEvent) : void
+			{
+				popB.close();
+				setMapSacle(event.item);
+				myMenu.selectedIndex = event.index;
+			}
+
+			/**
+			 * 	根据选择缩放列表中的选项改变地图缩放比例
+			 **/
+			private function setMapSacle(obj : Object) : void
+			{
+				var label : String = obj.label;
+				var sacle : Number = obj.sacle;
+				popB.label = label;
+				changeScale(sacle);
+			}
+
+			/**
+			 *
+			 * 改变地图的缩放
+			 *
+			 **/
+			private function changeScale(sacle : Number) : void
+			{
+				/******* 计算出mapScroller变化后 横列滚动条的位置 *******/
+				if (mapScroller.horizontalScrollBar.maximum == 0)
+				{
+					HSite = 0.5;
+				}
+				else
+				{
+					HSite = mapScroller.viewport.horizontalScrollPosition / mapScroller.horizontalScrollBar.maximum;
+				}
+				if (mapScroller.verticalScrollBar.maximum == 0)
+				{
+					VSite = 0.5;
+				}
+				else
+				{
+					VSite = mapScroller.viewport.verticalScrollPosition / mapScroller.verticalScrollBar.maximum;
+				}
+
+				/****** 计算出缩放后地图相对容器的位置 *******/
+				this.mapAreaGroup.scaleX = sacle;
+				this.mapAreaGroup.scaleY = this.mapAreaGroup.scaleX;
+				if (this.mapAreaGroup.width * this.mapAreaGroup.scaleX < this.mapBoxCon2.width)
+				{
+					this.mapAreaGroup.x = int((this.mapBoxCon2.width - this.mapAreaGroup.width * this.mapAreaGroup.scaleX) / 2);
+				}
+				else
+				{
+					this.mapAreaGroup.x = 0;
+				}
+				if (this.mapAreaGroup.height * this.mapAreaGroup.scaleX < this.mapBoxCon2.height)
+				{
+					this.mapAreaGroup.y = int((this.mapBoxCon2.height - this.mapAreaGroup.height * this.mapAreaGroup.scaleX) / 2);
+				}
+				else
+				{
+					this.mapAreaGroup.y = 0;
+				}
+			/***********/
+
+			}
+
+			/**
+			 *
+			 * 地图掩码列表
+			 *
+			 **/
+			private function initMenu2() : void
+			{
+				myMenu2 = new Menu();
+				var dp : Object = AllRefs.yanMaData;
+				myMenu2.dataProvider = dp;
+				myMenu2.selectedIndex = 0;
+				myMenu2.addEventListener("itemClick", itemClickHandler2);
+				gridTypeList.popUp = myMenu2;
+				var dpObj : Object = myMenu2.dataProvider[myMenu2.selectedIndex];
+				gridTypeList.label = dpObj.label;
+				gridColor.selectedColor = dpObj.color;
+				AllRefs.curWriteColor = dpObj.color;
+				AllRefs.curWriteType = dpObj.type;
+
+			}
+
+			/**
+			 *
+			 * 点击掩码列表选项
+			 *
+			 */
+			private function itemClickHandler2(event : MenuEvent) : void
+			{
+				var obj : Object = event.item;
+				var label : String = obj.label;
+				var sacle : Number = obj.sacle;
+				gridTypeList.label = label;
+				gridTypeList.close();
+
+				gridColor.selectedColor = obj.color;
+
+				AllRefs.curWriteColor = obj.color;
+				AllRefs.curWriteType = obj.type;
+
+				myMenu2.selectedIndex = event.index;
+			}
+
+			private function isEditChang() : void
+			{
+				AllRefs.isEdit = isEditCB.selected;
+			}
+
+			private function isAreaEditChang() : void
+			{
+				AllRefs.isAreaEdit = this.isAreaEdit.selected;
+			}
+
+			protected function scroller1_mouseWheelHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				//按Ctrl + 鼠标上滑 放大，按Ctrl + 鼠标下滑 缩小
+				if (event.ctrlKey)
+				{
+					if (event.delta > 0)
+					{
+						myMenu.selectedIndex = Math.min(myMenu.selectedIndex + 1, AllRefs.mapSacleList.length - 1);
+						setMapSacle(AllRefs.mapSacleList[myMenu.selectedIndex]);
+					}
+					else
+					{
+						myMenu.selectedIndex = Math.max(myMenu.selectedIndex - 1, 0);
+						setMapSacle(AllRefs.mapSacleList[myMenu.selectedIndex]);
+					}
+				}
+			}
+
+			private function onHChang(event : Event) : void
+			{
+				trace("mapScroller.horizontalScrollBar", mapScroller.viewport.horizontalScrollPosition, mapScroller.horizontalScrollBar.maximum);
+				trace("mapScroller.verticalScrollBar", mapScroller.verticalScrollBar.maximum);
+			}
+
+			/**
+			 * 	处理快捷键
+			 **/
+			protected function onKeyDown(event : KeyboardEvent) : void
+			{
+				// TODO Auto-generated method stub
+				switch (event.keyCode)
+				{
+					case 37: //←
+					{
+						mapScroller.viewport.horizontalScrollPosition -= AllRefs.gridWidth;
+						break;
+					}
+					case 40: //↓
+					{
+						mapScroller.viewport.verticalScrollPosition += AllRefs.gridHeight;
+						break;
+					}
+					case 39: //→
+					{
+						mapScroller.viewport.horizontalScrollPosition += AllRefs.gridWidth;
+						break;
+					}
+					case 38: //↑
+					{
+						mapScroller.viewport.verticalScrollPosition -= AllRefs.gridHeight;
+						break;
+					}
+					case 189: //-
+					{
+						myMenu.selectedIndex = Math.max(myMenu.selectedIndex - 1, 0);
+						setMapSacle(AllRefs.mapSacleList[myMenu.selectedIndex]);
+						break;
+					}
+					case 187: //=
+					{
+						myMenu.selectedIndex = Math.min(myMenu.selectedIndex + 1, AllRefs.mapSacleList.length - 1);
+						setMapSacle(AllRefs.mapSacleList[myMenu.selectedIndex]);
+						break;
+					}
+					case 46: //Delete
+					{
+						var obj : Object = AllRefs.mapMain.selectObj;
+						if (obj is ObjectView)
+						{
+							(obj as ObjectView).deleteMe();
+						}
+						break;
+					}
+					case 83: //S
+					{
+						//Ctrl+S
+						if (event.ctrlKey && !event.altKey)
+						{
+							this.mapMenuBar.save();
+						}
+						else if(event.ctrlKey && event.altKey)
+						{
+							this.mapMenuBar.saveAs(true);
+						}
+						break;
+					}
+					case 81: //Q
+					{ //Ctrl+Q
+						if (event.ctrlKey)
+						{
+							stage.nativeWindow.close();
+						}
+						break;
+					}
+					case 79: //O
+					{ //Ctrl+O
+						if (event.ctrlKey)
+						{
+							this.mapMenuBar.open();
+						}
+						break;
+					}
+					case 78: //N
+					{ //Ctrl + N
+						if (event.ctrlKey)
+						{
+							this.mapMenuBar.newFile();
+						}
+						break;
+					}
+				}
+			}
+
+			protected function mapScroller_updateCompleteHandler(event : FlexEvent) : void
+			{
+				// TODO Auto-generated method stub
+				mapScroller.viewport.horizontalScrollPosition = HSite * mapScroller.horizontalScrollBar.maximum;
+				mapScroller.viewport.verticalScrollPosition = VSite * mapScroller.verticalScrollBar.maximum;
+
+			}
+
+			protected function gridAlpha_changeHandler(event : Event) : void
+			{
+				// TODO Auto-generated method stub
+				for each (var gbox : SkinnableContainer in AllRefs.gridLayer.gridsBoxList)
+				{
+					gbox.alpha = gridAlpha.value / gridAlpha.maximum;
+				}
+			}
+
+			protected function gridBoxVisCB_clickHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				for each (var gbox : SkinnableContainer in AllRefs.gridLayer.gridsBoxList)
+				{
+					gbox.visible = this.gridBoxVisCB.selected;
+				}
+				if(this.gridBoxVisCB.selected == false)
+				{
+					this.isEditCB.selected = false;
+					AllRefs.isEdit = isEditCB.selected;
+				}
+			}
+
+			/**
+			 *	点击添加NPC按钮
+			 **/
+			protected function button4_clickHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.fileChoser.importNPC();
+			}
+
+			/**
+			 * 	更新坐标信息
+			 **/
+			public function updateXYInfo(param1 : ObjectView) : void
+			{
+				this.xTI.text = String(param1.A_x);
+				this.yTI.text = String(param1.A_y);
+				this.widthTI.text = String(param1.width);
+				this.heightTI.text = String(param1.height);
+				return;
+			}
+
+			/**
+			 * 	初始化属性面板
+			 *
+			 **/
+			public function initProPanel(param1 : Object) : void
+			{
+				if (param1 is NPC)
+				{
+					this.NPCSetPanelIns.visible = true;
+					this.NPCSetPanelIns.height = 300;
+					this.NPCSetPanelIns.init();
+				}
+				else
+				{
+					this.NPCSetPanelIns.visible = false;
+					this.NPCSetPanelIns.height = 10;
+				}
+				return;
+			}
+
+			/**
+			 * 	更新对象列表
+			 **/
+			public function updateList(param1 : uint, param2 : Object) : void
+			{
+				var _loc_3 : int = 0;
+				while (_loc_3 < this.objectsList.dataProvider.length)
+				{
+
+					if (this.objectsList.dataProvider.getItemAt(_loc_3).targetObj == param2)
+					{
+						this.objectsList.dataProvider.removeItemAt(_loc_3);
+						break;
+					}
+					_loc_3++;
+				}
+				return;
+			}
+
+			/**
+			 * 	修改列表中的选择项
+			 **/
+			public function changeListSelect(param1 : Object) : void
+			{
+				var _loc_2 : int = 0;
+				while (_loc_2 < this.objectsList.dataProvider.length)
+				{
+
+					if (this.objectsList.dataProvider.getItemAt(_loc_2).targetObj == param1)
+					{
+						this.objectsList.selectedIndex = _loc_2;
+						break;
+					}
+					_loc_2++;
+				}
+				return;
+			}
+
+			/**
+			 * 	更新列表中NPC的名字
+			 **/
+			public function updateNPCName() : void
+			{
+				if (this.objectsList.selectedItem)
+				{
+					this.objectsList.selectedItem.label = (AllRefs.mapMain.selectObj as NPC).NPCName;
+					this.objectsList.dataProvider.setItemAt(this.objectsList.selectedItem, this.objectsList.selectedIndex);
+				}
+			}
+
+			/**
+			 * 	左侧显示NPC列表发生变化
+			 **/
+			protected function objectsList_changeHandler(event : IndexChangeEvent) : void
+			{
+				// TODO Auto-generated method stub
+				this.changeSelectedObject();
+			}
+
+			/**
+			 * 	改变选择对象
+			 **/
+			private function changeSelectedObject() : void
+			{
+				ObjectView(this.objectsList.selectedItem.targetObj).setSelectMe();
+				return;
+			}
+
+
+			/**
+			 * 	处理位置文本框按下键盘事件
+			 **/
+			protected function TI_keyDownHandler(event : KeyboardEvent) : void
+			{
+				// TODO Auto-generated method stub
+				var currentTarget : Object = event.currentTarget;
+				switch (event.keyCode)
+				{
+					case 13: //Enter
+					{
+						if (currentTarget == this.xTI || currentTarget == this.yTI)
+						{
+							//调整选择目标的位置
+							var objectView : ObjectView = AllRefs.mapMain.selectObj as ObjectView;
+							objectView.A_x = int(this.xTI.text);
+							objectView.A_y = int(this.yTI.text);
+							objectView.AtoXY();
+						}
+						else if (currentTarget == this.mapName)
+						{
+							//修改地图名字
+							AllRefs.mapName = this.mapName.text;
+						}
+						else if (currentTarget == this.mapDescription)
+						{
+							//更改场景描述
+							AllRefs.mapDescription = this.mapDescription.text;
+						}
+						AllRefs.focusManager.setFocus(AllRefs.mapMaker.mapScroller);
+						break;
+					}
+				}
+				event.stopPropagation();
+			}
+
+			protected function button5_clickHandler(event : MouseEvent) : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.fileChoser.importChangMap();
+			}
+		]]>
+	</fx:Script>
+</s:WindowedApplication>

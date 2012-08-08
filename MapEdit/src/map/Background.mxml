@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="400"
+		 height="300"
+		 xmlns:map="map.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<map:BackgroundImage x="0"
+						 y="0"
+						 id="backGroundImage">
+	</map:BackgroundImage>
+
+	<fx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			
+			import mx.managers.PopUpManager;
+			
+			public var repeat:Boolean = false;
+			private var ldr:Loader;
+			
+			public function setBackground(param1 : String) : void
+			{
+				this.ldr = new Loader();
+				this.ldr.contentLoaderInfo.addEventListener(Event.INIT, this.initDrawBG);
+				this.ldr.load(new URLRequest(param1));
+				
+			} 
+			
+			public function initDrawBG(event:Event = null) : void
+			{
+				var _loc_2:* = this.ldr.content as Bitmap;
+				AllRefs.backBitmap = _loc_2;
+				this.graphics.clear();
+				this.graphics.beginBitmapFill(_loc_2.bitmapData, null, this.repeat, false);
+				if (this.repeat == true)
+				{
+					this.graphics.drawRect(0, 0, AllRefs.mapMain.mapWidth, AllRefs.mapMain.mapHeight);
+				}
+				else
+				{
+					this.graphics.drawRect(0, 0, _loc_2.width, _loc_2.height);
+				}
+				
+				backGroundAfter();
+			}
+			
+			/**
+			 * 	处理初始化完成背景的事情
+			 **/ 
+			public function backGroundAfter():void
+			{
+				if(AllRefs.mapSetWindow && AllRefs.mapSetWindow.isInit)
+				{
+					AllRefs.mapSetWindow.setViewData();
+				}
+			}
+			
+		]]>
+	</fx:Script>
+
+</s:Group>

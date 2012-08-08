@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:MenuBar xmlns:mx="http://www.adobe.com/2006/mxml"
+			labelField="@label"
+			itemClick="menuHandler(event);"
+			dataProvider="{menuBarCollection}"
+			creationComplete="initCollections()">
+	<mx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			import Data.DocumnetEncodeAndDecode;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+
+			[Bindable]
+			public var menuBarCollection:XMLListCollection;
+
+			private var menubarXML:XMLList=
+				<>
+					<menuitem label="文件" data="null">
+						<menuitem label="新建----Ctrl+N" data="new"/>
+						<menuitem label="打开----Ctrl+O" data="open"/>
+						<menuitem type="separator"/>
+						<menuitem label="保存----Ctrl+S" data="save"/>
+						<menuitem label="另存为---Ctrl+Alt+S" data="saveAs"/>
+						<menuitem label="退出----Ctrl+Q" data="exit"/>
+					</menuitem>
+					<menuitem label="编辑" data="top">
+					</menuitem>
+					<menuitem label="地图" data="--制作中"></menuitem>
+					<menuitem label="素材" data="--制作中"></menuitem>
+					<menuitem label="设置" data="--制作中"></menuitem>
+					<menuitem label="测试" data="--制作中"></menuitem>
+					<menuitem label="帮助" data="--制作中"></menuitem>
+				</>;
+//						<menuitem label="撤销" data="--制作中"/>
+//						<menuitem label="重做" data="--制作中"/>
+//						<menuitem label="全部选中" data="--制作中"/>
+//						<menuitem label="取消选中" data="--制作中"/>
+//						<menuitem label="删除" data="--制作中"/>
+			
+			
+//						<menuitem label="查找" type="check"  data="制作中"/>
+
+			/**
+			 *
+			 * 初始化菜单
+			 *
+			 */
+			private function initCollections():void
+			{
+				menuBarCollection=new XMLListCollection(menubarXML);
+			}
+
+			/**
+			 *
+			 * 处理菜单事件
+			 *
+			 **/
+			private function menuHandler(event:MenuEvent):void
+			{
+				var data:String=event.item.@data;
+				switch (data)
+				{
+					case "new":
+						newFile();
+						break;
+					case "open":
+						open();
+						break;
+					case "save":
+						save();
+						break;
+					case "saveAs":
+						saveAs(true);
+						break;
+					case "top":
+
+						break;
+					case "exit":
+						stage.nativeWindow.close()
+						break;
+					default:
+						Alert.show(event.item.@label + event.item.@data);
+
+				}
+
+			}
+			public function newFile():void
+			{
+				AllRefs.mapDataPath = "";
+				PopUpManager.addPopUp(AllRefs.mapSetWindow, AllRefs.mapMaker)
+				PopUpManager.centerPopUp(AllRefs.mapSetWindow);
+			}
+			/**
+			 *
+			 * 打开文件
+			 *
+			 * */
+			public function open():void
+			{
+				if(AllRefs.backBitmap == null)
+				{
+					Alert.show("请先选择背景图");
+					return;
+				}
+				var _loc_1:*=new File();
+				var _loc_2:*=new FileFilter("地图项目文件 (*.xml)", "*.xml");
+				_loc_1.addEventListener(Event.SELECT, this.openSelect);
+				_loc_1.browseForOpen("选择要打开的文件", [_loc_2]);
+			}
+
+			/**
+			 * 选择文件
+			 */
+			protected function openSelect(event:Event):void
+			{
+				var _loc_2:*=new URLLoader();
+				_loc_2.addEventListener(Event.COMPLETE, this.readFileData);
+				_loc_2.load(new URLRequest(event.currentTarget.url));
+				
+				AllRefs.mapDataPath = decodeURI(event.currentTarget.url);
+				AllRefs.mapMaker.title = "MapEdit-" + AllRefs.mapDataPath;
+			}
+
+			/**
+			 * 读取文件数据
+			 */
+			protected function readFileData(event:Event):void
+			{
+//				var fileDataStr:String=String(event.currentTarget.data);
+				var mapXML:XML = new XML(event.currentTarget.data);
+				trace(mapXML.@Name,mapXML.@MapWidth,mapXML.@MapHeight,mapXML.@OffsetX,mapXML.@OffsetY);
+				
+				DocumnetEncodeAndDecode.decode(mapXML);
+			}
+
+			/**
+			 * 	选择保存选项
+			 **/
+			public function save():void
+			{
+				if(AllRefs.mapDataPath.length > 0)
+				{
+					saveSelect(null,AllRefs.mapDataPath);
+				}
+				else
+				{
+					saveAs(true);
+				}
+			}
+			
+			/**
+			 * 保存位置选择
+			 **/
+			public function saveAs(param1:Boolean=false):void
+			{
+				var _loc_2:File=null;
+				if (param1 == true)
+				{
+					_loc_2=new File();
+					_loc_2.addEventListener(Event.SELECT, this.saveSelect);
+					_loc_2.browseForSave("请选择保存文件的位置和文件名");
+				}
+			}
+
+			/**
+			 * 保存选择路径文件
+			 */
+			protected function saveSelect(event:Event, param2:String=""):void
+			{
+				if(AllRefs.backBitmap == null) return;
+				
+				var url:String=null;
+				if (event != null)
+				{
+					url=event.currentTarget.url;
+				}
+				else
+				{
+					url=param2;
+				}
+				var _loc_4:*=new File(url);
+				var fs:FileStream=new FileStream();
+				fs.open(_loc_4, FileMode.WRITE);
+	            fs.writeUTFBytes(DocumnetEncodeAndDecode.encode());
+				fs.close();
+				AllRefs.mapDataPath = decodeURI(url);
+				
+				AllRefs.mapMaker.title = "MapEdit-" + AllRefs.mapDataPath;
+			}
+			
+		]]>
+	</mx:Script>
+</mx:MenuBar>

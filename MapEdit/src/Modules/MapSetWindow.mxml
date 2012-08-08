@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
+				layout="absolute"
+				width="400"
+				height="380"
+				title="地图属性与网格大小设置"
+				fontSize="12"
+				close="closeMe(event)"
+				showCloseButton="true"
+				creationComplete="init()"
+				show="titlewindow1_showHandler(event)">
+	<mx:Label x="43"
+			  y="97"
+			  text="地图属性大小"/>
+	<mx:Label x="43"
+			  y="186"
+			  text="网格大小属性"/>
+	<mx:Label x="55"
+			  y="122"
+			  text="地图宽度："/>
+	<mx:Label x="55"
+			  y="150"
+			  text="地图高度："/>
+	<mx:TextInput x="128"
+				  y="120"
+				  text="300"
+				  id="widthTI"/>
+	<mx:Label x="296"
+			  y="122"
+			  text="Pixel"/>
+	<mx:Label x="296"
+			  y="150"
+			  text="Pixel"/>
+	<mx:TextInput x="128"
+				  y="148"
+				  text="300"
+				  id="heightTI"/>
+	<mx:Label x="31"
+			  y="240"
+			  text="单个格子高度："/>
+	<mx:Label x="31"
+			  y="212"
+			  text="单个格子宽度："/>
+	<mx:TextInput x="128"
+				  y="210"
+				  text="60"
+				  id="gridWidthTI"/>
+	<mx:Label x="296"
+			  y="212"
+			  text="Pixel"/>
+	<mx:Label x="296"
+			  y="240"
+			  text="Pixel"/>
+	<mx:TextInput x="128"
+				  y="238"
+				  text="30"
+				  id="gridHeightTI"/>
+	<mx:Label x="172"
+			  y="59"
+			  text="地图背景颜色："/>
+	<mx:ColorPicker x="270"
+					y="57"
+					id="bgCP"/>
+	<mx:Button x="73"
+			   y="58"
+			   label="选择背景图片"
+			   click="selectBackImage()"/>
+
+	<mx:Button x="155"
+			   y="286"
+			   label="确定"
+			   width="84"
+			   click="onSubmit(event)"/>
+
+	<mx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			import Data.StaticFunctions;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+
+			public var isInit:Boolean = false;
+			
+			public function onSubmit(event : MouseEvent) : void
+			{
+				if(AllRefs.backBitmap == null)
+				{
+					Alert.show("请先选择地图图片");
+					return;
+				}
+				
+				closeMe(null);
+				StaticFunctions.clearAStarMap();
+				AllRefs.mapData = [];
+				AllRefs.mapMain.objectsLayer.deleteAllChangMap();
+				AllRefs.mapMain.objectsLayer.deleteAllNPC();
+				AllRefs.mapMaker.mapName.text = "";
+				AllRefs.mapMaker.mapDescription.text = "";
+				AllRefs.mapDataPath = "";
+				AllRefs.mapMaker.title = "MapEdit-new";
+
+				var param1 : uint = uint(this.widthTI.text);
+				var param2 : uint = uint(this.heightTI.text);
+				var param3 : uint = Number(this.gridWidthTI.text);
+				var param4 : uint = Number(this.gridHeightTI.text);
+
+				AllRefs.mapMain.reSetSize(param1, param2, param3, param4);
+				AllRefs.gridLayer.reSetSize(param1, param2, param3, param4);
+				AllRefs.gridLayer.drawAll(param1, param2, param3, param4);
+
+				AllRefs.mapMain.backgroundColor = this.bgCP.selectedColor;
+			}
+
+			private function closeMe(event : Event) : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+
+			protected function init() : void
+			{
+				// TODO Auto-generated method stub
+				setViewData();
+				isInit = true;
+			}
+
+			protected function titlewindow1_showHandler(event : FlexEvent) : void
+			{
+				// TODO Auto-generated method stub
+				setViewData();
+			}
+
+			public function setViewData() : void
+			{
+
+				if (AllRefs.backBitmap)
+				{
+					var gridWidth : Number = Number(this.gridWidthTI.text);
+					var gridHeight : Number = Number(gridHeightTI.text);
+					widthTI.text = "" + Math.ceil(AllRefs.backBitmap.width / gridWidth) * gridWidth;
+					heightTI.text = "" + Math.ceil(AllRefs.backBitmap.height / gridHeight) * gridHeight;
+				}
+			}
+
+			/**
+			 * 	点击“选择背景”按钮
+			 *
+			 */
+			protected function selectBackImage() : void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.fileChoser.choseBackGround();
+			}
+		]]>
+	</mx:Script>
+	<mx:Label x="43" y="28" text="背景图设置"/>
+
+</mx:TitleWindow>
