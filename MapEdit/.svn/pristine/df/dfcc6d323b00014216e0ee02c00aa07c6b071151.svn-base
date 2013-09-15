@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="400"
+		 height="300" mouseDown="group1_mouseDownHandler(event)" mouseMove="group1_mouseMoveHandler(event)" mouseUp="group1_mouseUpHandler(event)">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:SkinnableContainer id="gridsLine">
+
+	</s:SkinnableContainer>
+	
+	<fx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			import Data.StaticFunctions;
+			
+			import flash.utils.getTimer;
+			
+			import mx.containers.Grid;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+
+			/**
+			 * 	掩码格子数组
+			 **/ 
+			public var gridsBoxList:Array;
+			/**
+			 * 	线条颜色
+			 **/ 
+			private var lineColor : uint = 10066329;
+			
+			/**
+			 * 	一种掩码各一个Graphics对象
+			 **/ 
+			private var gridsBoxGraphicsList:Array;
+			
+			/**
+			 * 	如果是绘制一个区域的话，此点为开始点
+			 * 	
+			 * 	在加上一个结束点便可形成矩形区域
+			 **/ 
+			private var startPoint:Point;
+			/**
+			 * 	区域绘制时显示绘制范围，让编辑者更直观
+			 **/ 
+			private var areaSkinnableContainer:SkinnableContainer;
+			private var areaGraphics:Graphics;
+			
+			public function init():void
+			{
+				var i:int = 0;
+				gridsBoxList = [];
+				gridsBoxGraphicsList = [];;
+				var len:int = AllRefs.yanMaData.length;
+				var gBox:SkinnableContainer = new SkinnableContainer();
+				for(i = 0; i < len; i++)
+				{
+					var obj:Object = AllRefs.yanMaData[i];
+					gBox = new SkinnableContainer();
+					gBox.graphics.clear();
+					gBox.graphics.beginFill(obj.color, 1);
+					
+					gridsBoxList[ obj.type]= gBox;
+					gridsBoxGraphicsList[obj.type] = gBox.graphics;
+					
+					this.addElement(gBox);
+				}
+				
+				this.areaSkinnableContainer = new SkinnableContainer();
+				this.areaGraphics = this.areaSkinnableContainer.graphics;
+				this.addElement(this.areaSkinnableContainer);
+			}
+			
+			public function reSetSize(param1 : uint, param2 : uint, param3 : Number, param4 : Number) : void
+			{
+				var _loc_5 : * = Math.ceil(param1 / param3);
+				var _loc_6 : * = Math.ceil(param2 / param4);
+				
+				AllRefs.length = uint(_loc_5 + _loc_6) + 1;
+				AllRefs.mapWidth = param1;
+				AllRefs.mapHeight = param2;
+				AllRefs.gridWidth = param3;
+				AllRefs.gridHeight = param4;
+				AllRefs.allGridWidth = param3 * AllRefs.length;
+				AllRefs.allGridHeight = param4 * AllRefs.length;
+				AllRefs.ReadOffsetY = 0;
+				
+				AllRefs.mapMain.backGround.x = 0;
+				AllRefs.mapMain.backGround.y = 0;
+			} // end function
+
+			public function drawAll(param1 : uint, param2 : uint, param3 : Number, param4 : Number):void
+			{
+				var _loc_5 : * = Math.ceil(param1 / param3);
+				var _loc_6 : * = Math.ceil(param2 / param4);
+//				AllRefs.ZeroX = -_loc_6 * param3 / 2 ;
+//				AllRefs.ZeroY = param2 / 2;
+				
+				AllRefs.ZeroX = -_loc_6 * param3 / 2 - param3 / 2;
+				AllRefs.ZeroY = param2 / 2 ;
+				
+				this.lineColor = AllRefs.mapMaker.gridColorCP.selectedColor;
+				
+				var startTime : int = getTimer();
+				this.drawLines();
+				trace("绘制线条", getTimer() - startTime);
+				startTime = getTimer();
+				this.reBuildGrids();
+				trace("绘制格子", getTimer() - startTime);
+			}
+			
+			private function drawLines() : void
+			{
+				this.gridsLine.graphics.clear();
+				this.gridsLine.graphics.lineStyle(0.1, this.lineColor, 1);
+				var _loc_1 : int = 0;
+				while (_loc_1 <= AllRefs.length)
+				{
+					this.gridsLine.graphics.moveTo(AllRefs.ZeroX + _loc_1 * AllRefs.gridWidth / 2, AllRefs.ZeroY - _loc_1 * AllRefs.gridHeight / 2);
+					this.gridsLine.graphics.lineTo(AllRefs.ZeroX + _loc_1 * AllRefs.gridWidth / 2 + AllRefs.length * AllRefs.gridWidth / 2, AllRefs.ZeroY - _loc_1 * AllRefs.gridHeight / 2 + AllRefs.length * AllRefs.gridHeight / 2);
+					_loc_1++;
+				}
+				var _loc_2 : int = 0;
+				while (_loc_2 <= AllRefs.length)
+				{
+					this.gridsLine.graphics.moveTo(AllRefs.ZeroX + _loc_2 * AllRefs.gridWidth / 2, AllRefs.ZeroY + _loc_2 * AllRefs.gridHeight / 2);
+					this.gridsLine.graphics.lineTo(AllRefs.ZeroX + _loc_2 * AllRefs.gridWidth / 2 + AllRefs.length * AllRefs.gridWidth / 2, AllRefs.ZeroY + _loc_2 * AllRefs.gridHeight / 2 - AllRefs.length * AllRefs.gridHeight / 2);
+					_loc_2++;
+				}
+				return;
+			} // end function
+
+			public function reBuildGrids() : void
+			{
+				var _loc_3 : Number = NaN;
+				var _loc_4 : Number = NaN;
+				var _loc_8 : int = 0;
+				
+				clearGridsBox();
+				AllRefs.allRefsArr = [];
+				
+				
+				var _loc_7 : int = 0;
+
+				while (_loc_7 < AllRefs.length)
+				{
+
+					AllRefs.allRefsArr[_loc_7] = [];
+					_loc_8 = 0;
+					while (_loc_8 < AllRefs.length)
+					{
+
+						_loc_3 = AllRefs.ZeroX + _loc_8 * AllRefs.gridWidth / 2 + _loc_7 * AllRefs.gridWidth / 2;
+						_loc_4 = AllRefs.ZeroY - _loc_8 * AllRefs.gridHeight / 2 + _loc_7 * AllRefs.gridHeight / 2 - AllRefs.gridHeight / 2;
+					
+						draw( _loc_3, _loc_4, _loc_7, _loc_8);
+
+						_loc_8++;
+					}
+					_loc_7++;
+				}
+
+			} // end function
+
+			/**
+			 * 	画菱形
+			 *
+			 **/
+			public function draw(x : Number, y : Number, A_x : int, A_y : int) : void
+			{
+				var graphics:Graphics;				
+				if (y > AllRefs.mapMain.mapHeight || x > AllRefs.mapMain.mapWidth || x + AllRefs.gridWidth < 0 || y + AllRefs.gridHeight < 0 || A_x >= AllRefs.length || A_y >= AllRefs.length)
+				{
+				}
+				else
+				{
+					if(AllRefs.isInitMap)
+					{
+						if(AllRefs.mapData[A_x * AllRefs.length + A_y] == null) AllRefs.mapData[A_x * AllRefs.length + A_y] = AllRefs.defultGridType;
+						graphics = gridsBoxGraphicsList[AllRefs.mapData[A_x * AllRefs.length + A_y]];
+						if(graphics)
+						{
+							graphics.moveTo(x + AllRefs.gridWidth / 2, y + 0);
+							graphics.lineTo(x + AllRefs.gridWidth, y +  AllRefs.gridHeight / 2);
+							graphics.lineTo(x + AllRefs.gridWidth / 2, y +  AllRefs.gridHeight);
+							graphics.lineTo(x + 0, y +  AllRefs.gridHeight / 2);
+						}
+					}
+					else
+					{
+						//如果原来有颜色 则擦除
+						graphics = gridsBoxGraphicsList[AllRefs.mapData[A_x * AllRefs.length + A_y]];
+//						if(graphics && AllRefs.mapData[A_x * AllRefs.length + A_y] != AllRefs.curWriteType)
+						if(graphics)
+						{
+							graphics.moveTo(x + AllRefs.gridWidth / 2, y + 0);
+							graphics.lineTo(x + AllRefs.gridWidth, y +  AllRefs.gridHeight / 2);
+							graphics.lineTo(x + AllRefs.gridWidth / 2, y +  AllRefs.gridHeight);
+							graphics.lineTo(x + 0, y +  AllRefs.gridHeight / 2);
+							
+						}
+						
+						//如果当前颜色 与 要画的颜色相同 则画上默认颜色
+						if(AllRefs.mapData[A_x * AllRefs.length + A_y] == AllRefs.curWriteType)
+						{
+							AllRefs.mapData[A_x * AllRefs.length + A_y] = AllRefs.defultGridType;
+						}
+						else
+						{
+							// 画上要画的颜色
+							AllRefs.mapData[A_x * AllRefs.length + A_y] = AllRefs.curWriteType;
+						}
+						
+						graphics = gridsBoxGraphicsList[AllRefs.mapData[A_x * AllRefs.length + A_y]];
+						graphics.moveTo(x + AllRefs.gridWidth / 2, y + 0);
+						graphics.lineTo(x + AllRefs.gridWidth, y +  AllRefs.gridHeight / 2);
+						graphics.lineTo(x + AllRefs.gridWidth / 2, y +  AllRefs.gridHeight);
+						graphics.lineTo(x + 0, y +  AllRefs.gridHeight / 2);
+					}
+					
+				}
+			}
+
+			public function changeGridColor(param1 : uint) : void
+			{
+				this.lineColor = param1;
+				this.drawLines();
+			} // end function
+
+			public function changeGridAlpha(param1 : Number) : void
+			{
+				this.gridsLine.alpha = param1;
+			} // end function
+
+			public function setGridVisible(param1 : Boolean) : void
+			{
+				this.gridsLine.visible = param1;
+				return;
+			} // end function
+			
+			public function clearGridsBox():void
+			{
+				var i:int = 0;
+				var len:int = AllRefs.yanMaData.length;
+				var graphics:Graphics;
+				for(i = 0; i < len; i++)
+				{
+					var obj:Object = AllRefs.yanMaData[i];
+					
+					graphics = gridsBoxGraphicsList[obj.type];
+					graphics.clear();
+					graphics.beginFill(obj.color, 1);
+				}
+			}
+
+			/**
+			 * 	鼠标按下开始绘制
+			 **/ 
+			protected function group1_mouseDownHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.isOpenDrawPen = true;
+				
+				var x1 : Number = event.localX;
+				var y1 : Number = event.localY;
+				
+				if(AllRefs.isAreaEdit)
+				{
+					startPoint = StaticFunctions.xyToAStarXY(new Point(x1,y1));
+				}
+				else
+				{
+					drawSelectPoint(x1, y1, !event.ctrlKey);
+				}
+			}
+
+			/**
+			 * 	鼠标移动，绘制
+			 **/ 
+			protected function group1_mouseMoveHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var x1 : Number = event.localX;
+				var y1 : Number = event.localY;
+				
+				if(AllRefs.isEdit && AllRefs.isOpenDrawPen && AllRefs.isAreaEdit)
+				{
+					//绘制预览区域
+					this.areaGraphics.clear();
+					if(event.ctrlKey)
+					{
+						this.areaGraphics.beginFill(AllRefs.typeColors[AllRefs.defultGridType],0.5);
+					}
+					else
+					{
+						this.areaGraphics.beginFill(AllRefs.curWriteColor,0.5);
+					}
+					
+					var endPoint:Point = StaticFunctions.xyToAStarXY(new Point(x1,y1));
+					var minX:int = Math.min(startPoint.x,endPoint.x);
+					var maxX:int = Math.max(startPoint.x,endPoint.x);
+					var minY:int = Math.min(startPoint.y,endPoint.y);
+					var maxY:int = Math.max(startPoint.y,endPoint.y);
+					
+					var i:int;
+					var j:int;
+					var realPoint:Point;
+					for( i = minX; i <= maxX; i++ )
+					{
+						for( j = minY ; j <= maxY; j++ )
+						{
+							realPoint = StaticFunctions.AstarXYToxy(new Point(i,j));
+							drawGrid(this.areaGraphics,realPoint.x,realPoint.y - AllRefs.gridHeight / 2);
+						}
+					}
+				}
+				else
+				{
+					drawSelectPoint(x1, y1, !event.ctrlKey);
+				}
+				
+				//A*点
+				var aPoint:Point = StaticFunctions.xyToAStarXY(new Point(x1,y1));
+				AllRefs.mapMaker.onMapSite.text = "(" + aPoint.x + "," + aPoint.y+ ")";
+			}
+
+			/**
+			 * 	鼠标弹起，结束绘制
+			 **/ 
+			protected function group1_mouseUpHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(AllRefs.isEdit && AllRefs.isOpenDrawPen && AllRefs.isAreaEdit)
+				{
+					this.areaGraphics.clear();
+					
+					var endPoint:Point = StaticFunctions.xyToAStarXY(new Point(event.localX,event.localY));
+					var minX:int = Math.min(startPoint.x,endPoint.x);
+					var maxX:int = Math.max(startPoint.x,endPoint.x);
+					var minY:int = Math.min(startPoint.y,endPoint.y);
+					var maxY:int = Math.max(startPoint.y,endPoint.y);
+					
+					var i:int;
+					var j:int;
+					var realPoint:Point;
+					for( i = minX; i <= maxX; i++ )
+					{
+						for( j = minY ; j <= maxY; j++ )
+						{
+							realPoint = StaticFunctions.AstarXYToxy(new Point(i,j));
+							drawSelectPoint(realPoint.x + AllRefs.gridWidth / 2, realPoint.y, !event.ctrlKey);
+						}
+					}
+					
+				}
+				
+				AllRefs.isOpenDrawPen = false;
+			}
+
+			
+			/**
+			 * 	绘制鼠标点中的格子
+			 **/ 
+			public function drawSelectPoint(x1 : Number, y1 : Number, isDraw : Boolean) : void
+			{
+				if (AllRefs.isEdit && AllRefs.isOpenDrawPen)
+				{
+					//相对A*点（0,0）
+					x1 = (x1 - AllRefs.ZeroX) * 2 / AllRefs.gridWidth;
+					y1 = (y1 - AllRefs.ZeroY) * 2 / AllRefs.gridHeight;
+					//A*点
+					var A_x : int = (x1 + y1) / 2;
+					var A_y : int = (x1 - y1) / 2;
+					var x : int = AllRefs.ZeroX + A_y * AllRefs.gridWidth / 2 + A_x * AllRefs.gridWidth / 2;
+					var y : int = AllRefs.ZeroY - A_y * AllRefs.gridHeight / 2 + A_x * AllRefs.gridHeight / 2 - AllRefs.gridHeight / 2;
+					
+					/**
+					 *	本想只绘制一个菱形区域
+					 * 		这样做的话就必须清除原来话的菱形区域的像素（目标无法做到）
+					 *
+					 * 	改变数据，重绘所有菱形
+					 *
+					 **/
+					
+					if (isDraw && (AllRefs.mapData[A_x * AllRefs.length + A_y] != AllRefs.curWriteType))
+					{
+						AllRefs.gridLayer.draw(x, y, A_x, A_y);
+					}
+					else if (!isDraw && (AllRefs.mapData[A_x * AllRefs.length + A_y] == AllRefs.curWriteType && AllRefs.curWriteType != AllRefs.defultGridType))
+					{
+						AllRefs.gridLayer.draw(x, y, A_x, A_y);
+					}
+					
+				}
+			}
+			
+			/**
+			 *	绘制某个菱形格子 以菱形的左上角为原点（x,y）
+			 **/
+			public function drawGrid(graphics:Graphics,x:Number,y:Number):void
+			{
+				graphics.moveTo(x + AllRefs.gridWidth / 2, y + 0);
+				graphics.lineTo(x + AllRefs.gridWidth, y +  AllRefs.gridHeight / 2);
+				graphics.lineTo(x + AllRefs.gridWidth / 2, y +  AllRefs.gridHeight);
+				graphics.lineTo(x + 0, y +  AllRefs.gridHeight / 2);
+			}
+		]]>
+	</fx:Script>
+</s:Group>

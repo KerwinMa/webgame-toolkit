@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SpriteVisualElement xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" click="onClick(event)" mouseOver="onMouseOver(event)" >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			
+			public var A_x:int;
+			public var A_y:int;
+			public var textField:TextField = new TextField();
+			
+			public function reDraw() : void
+			{
+				textField.x = this.width /8;
+				textField.y = this.height/8 ;
+				textField.width = 45;
+				textField.height = 18;
+				textField.htmlText = "<font color='#00ff00'>("+ A_x + "," + A_y + ")</font>";
+				textField.mouseEnabled = false;
+				this.addChild(textField);
+				
+				
+				var color:uint ;
+				if(AllRefs.isInitMap)
+				{
+					color = AllRefs.typeColors[AllRefs.mapData[A_x * AllRefs.length + A_y]];
+				}else
+				{
+					color = AllRefs.curWriteColor;
+					AllRefs.mapData[A_x * AllRefs.length + A_y] = AllRefs.curWriteType;
+				}
+				this.graphics.clear();
+				this.graphics.beginFill(color, 1);
+				this.graphics.moveTo(this.width / 2, 0);
+				this.graphics.lineTo(this.width, this.height / 2);
+				this.graphics.lineTo(this.width / 2, this.height);
+				this.graphics.lineTo(0, this.height / 2);
+				this.graphics.endFill();
+				return;
+			}// end function
+			
+			public function show() : void
+			{
+				this.reDraw();
+				return;
+			}// end function
+			
+			public function onClick(event:Event):void
+			{
+				if(AllRefs.isEdit)
+				{
+					reDraw();
+				}
+			}
+			
+			public function onMouseOver(event:MouseEvent):void
+			{
+				if(AllRefs.isOpenDrawPen && AllRefs.isEdit)
+				{
+					trace("("+ A_x + "," + A_y + ")");
+					reDraw();
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+</s:SpriteVisualElement>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					  xmlns:s="library://ns.adobe.com/flex/spark" 
+					  xmlns:mx="library://ns.adobe.com/flex/mx" width="200" height="166" backgroundColor="#595959" contentBackgroundColor="#3D3D3D">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Label x="20" y="32" text="名字：" width="50"/>
+	<mx:TextInput x="83" y="23" width="100" id="NPCName"  focusIn="IME.enabled = true;" keyDown="TI_keyDownHandler(event)"  toolTip="NPC或转场点名称"/>
+	<s:Label x="20" y="64" text="(转场)ID:&#xd;" width="50"/>
+	<s:Label x="10" y="10" text="NPC属性(转场点)设置"/>
+	<s:TextInput x="83" y="58" width="100" id="npcID" keyDown="TI_keyDownHandler(event)" toolTip="NPC编号或者将转到场景的编号"/>
+	<s:Label x="20" y="93" text="说明：" width="50"/>
+	<mx:TextInput x="84" y="88" width="100" id="NPCRemark" focusIn="IME.enabled = true;" keyDown="TI_keyDownHandler(event)" toolTip="功能说明"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			
+			import map.NPC;
+			import map.ObjectView;
+			
+			public function init() : void
+			{
+				updateViewData();
+			}
+			
+			/**
+			 * 	处理npc名字文本框按下键盘事件
+			 **/ 
+			protected function TI_keyDownHandler(event : KeyboardEvent) : void
+			{
+				// TODO Auto-generated method stub
+				switch (event.keyCode)
+				{
+					case 13: //Enter
+					{
+						var npc : NPC = AllRefs.mapMain.selectObj as NPC;
+						npc.NPCName = this.NPCName.text;
+						npc.nameTxt.text = this.NPCName.text;
+						npc.NPCId = int(this.npcID.text);
+						npc.Remark = this.NPCRemark.text;
+						AllRefs.mapMaker.updateNPCName();
+						AllRefs.focusManager.setFocus(AllRefs.mapMaker.mapScroller);
+						break;
+					}
+				}
+				event.stopPropagation();
+			}
+			
+			public function updateViewData():void
+			{
+				var npc:NPC = NPC(AllRefs.mapMain.selectObj);
+				this.NPCName.text = npc.NPCName;
+				this.npcID.text = "" + npc.NPCId;
+				this.NPCRemark.text = npc.Remark;
+			}
+		]]>
+	</fx:Script>
+	
+</s:SkinnableContainer>

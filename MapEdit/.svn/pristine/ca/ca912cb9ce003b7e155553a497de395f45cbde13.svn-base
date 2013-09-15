@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="122" height="104" xmlns:map="map.*" mouseOver="group1_mouseOverHandler(event)" contentBackgroundAlpha="0.0" mouseOut="group1_mouseOutHandler(event)">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Label y="-20" text="" horizontalCenter="0" id="nameTxt" color="#DFE70C"/>
+	<mx:Image horizontalCenter="0" id="image" init="image_initHandler(event)" mouseDown="image_mouseDownHandler(event)" scaleContent="false"/>
+	<s:SkinnableContainer contentBackgroundAlpha="1.0" backgroundAlpha="0.0" horizontalCenter="0" id="clickArea">
+	</s:SkinnableContainer>
+	
+	<fx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			import Data.StaticFunctions;
+			
+			//是否被选中
+			private var _selected:Boolean = false;
+			//A*坐标
+			public var A_x:int = 0;
+			public var A_y:int = 0;
+			
+			//偏移量
+			public var offsetPoint:Point = new Point(22,95);
+			
+			public function set source(param1:String) : void
+			{
+				//把位置调整到地图中间
+				if(!AllRefs.isInitMap)
+				{
+					if(AllRefs.mapMaker.mapAreaGroup.width * AllRefs.mapMaker.mapAreaGroup.scaleX > AllRefs.mapMaker.mapBoxCon2.width)
+					{
+						this.x = (AllRefs.mapMaker.mapScroller.viewport.horizontalScrollPosition + AllRefs.mapMaker.mapBoxCon2.width / 2) /AllRefs.mapMaker.mapAreaGroup.scaleX - offsetPoint.x;
+					}
+					else
+					{
+						this.x = AllRefs.mapWidth / 2 - offsetPoint.x;
+					}
+					if(AllRefs.mapMaker.mapAreaGroup.height * AllRefs.mapMaker.mapAreaGroup.scaleX > AllRefs.mapMaker.mapBoxCon2.height)
+					{
+						this.y = (AllRefs.mapMaker.mapScroller.viewport.verticalScrollPosition + AllRefs.mapMaker.mapBoxCon2.height / 2) /AllRefs.mapMaker.mapAreaGroup.scaleX + AllRefs.mapMaker.mapAreaGroup.y - offsetPoint.y;
+					}
+					else
+					{
+						this.y = AllRefs.mapHeight / 2 - offsetPoint.y;
+					}
+					//把坐标调整到A*点上
+					adjustXY();
+				}
+				
+				this.image.source = param1;
+			}
+			
+			/**
+			 * 	设置是否被选中
+			 * 
+			 */ 
+			public function set selected(param1:Boolean) : void
+			{
+				this._selected = param1;
+				this.clickArea.visible = param1;
+			}
+			
+			public function resetSize(param1:Number = -51, param2:Number = -51) : void
+			{
+				if (param1 != -51)
+				{
+					this.width = param1;
+					this.height = param2;
+				}
+				else
+				{
+					this.width = this.image.content.width;
+					this.height = this.image.content.height;
+				}
+				this.clickArea.graphics.clear();
+				this.clickArea.graphics.lineStyle(1, 35583, 1);
+				this.clickArea.graphics.drawRect(0, 0, this.width, this.height);
+				this.clickArea.width = this.width;
+				this.clickArea.height = this.height;
+				
+			}// end function
+			
+			/**
+			 * 	鼠标移上该组件
+			 **/ 
+			protected function group1_mouseOverHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.showOver();
+			}
+			
+			/**
+			 * 	显示单击区域
+			 **/ 
+			private function showOver() : void
+			{
+				this.clickArea.visible = true;
+				return;
+			}// end function
+
+			/**
+			 * 	图片初始化完成
+			 **/ 
+			protected function image_initHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				this.resetSize();
+			}
+
+			/**
+			 * 	在图片上按下鼠标
+			 **/ 
+			protected function image_mouseDownHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.startDragMe();
+				this.setSelectMe();
+			}
+			
+			/**
+			 * 	开始拖动
+			 **/ 
+			private function startDragMe() : void
+			{
+				this.startDrag(false);
+				this.stage.addEventListener(MouseEvent.MOUSE_UP, this.stopDragMe);
+				this.stage.addEventListener(MouseEvent.MOUSE_MOVE, this.updateInfo);
+			}// end function
+			
+			/**
+			 * 	停止拖动
+			 **/ 
+			protected function stopDragMe(event:MouseEvent) : void
+			{
+				this.stopDrag();
+				this.stage.removeEventListener(MouseEvent.MOUSE_UP, this.stopDragMe);
+				this.stage.removeEventListener(MouseEvent.MOUSE_MOVE, this.updateInfo);
+				
+				//把NPC调整到A*点上
+				adjustXY();
+				
+				return;
+			}// end function
+			
+			protected function updateInfo(event:MouseEvent) : void
+			{
+				updateASite();
+				AllRefs.mapMaker.updateXYInfo(this);
+				return;
+			}// end function
+			
+			public function setSelectMe() : void
+			{
+				if (AllRefs.mapMain.selectObj == this)
+				{
+					return;
+				}
+				AllRefs.mapMain.selectObj = this;
+				AllRefs.mapMaker.changeListSelect(this);
+				return;
+			}// end function
+			
+			public function deleteMe():void
+			{
+				if(this.parent)
+				{
+					AllRefs.mapMaker.NPCSetPanelIns.visible = false;
+					Object(this.parent).removeElement(this);
+					AllRefs.mapMaker.updateList(0, this);
+				}
+			}
+			
+			/**
+			 * 	光标离开事件
+			 **/ 
+			protected function group1_mouseOutHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.showOut();
+			}
+			
+			/**
+			 * 	控制选中框的显示
+			 **/ 
+			private function showOut() : void
+			{
+				if (this._selected == true)
+				{
+					return;
+				}
+				this.clickArea.visible = false;
+				return;
+			}// end function
+			
+			/**
+			 * 	更新A*坐标
+			 **/ 
+			public function updateASite():void
+			{
+				var AStarPoint:Point = StaticFunctions.xyToAStarXY(new Point(this.x + this.offsetPoint.x,this.y + this.offsetPoint.y));
+				this.A_x = AStarPoint.x;
+				this.A_y = AStarPoint.y;
+			}
+			
+			/**
+			 * 	把NPC调整到A*点上
+			 **/ 
+			public function adjustXY():void
+			{
+				updateASite();
+				AtoXY();
+			}
+			
+			/**
+			 * 	把NPC放到所在A*点上
+			 **/ 
+			public function AtoXY():void
+			{
+				var realPoint:Point = StaticFunctions.AstarXYToxy(new Point(this.A_x,this.A_y));
+				this.x = realPoint.x - this.offsetPoint.x + AllRefs.gridWidth / 2;
+				this.y = realPoint.y - this.offsetPoint.y;
+			}
+		]]>
+	</fx:Script>
+</s:Group>

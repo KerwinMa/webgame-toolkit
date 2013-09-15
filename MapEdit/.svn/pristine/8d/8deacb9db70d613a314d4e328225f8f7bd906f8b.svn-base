@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="80"
+		 height="60"
+		 xmlns:map="map.*"
+		 creationComplete="init()"
+		 xmlns:Modules="Modules.*" mouseDown="group1_mouseDownHandler(event)">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<map:Background x="0"
+					y="0"
+					id="backGround">
+	</map:Background>
+	<map:GridLayer x="0"
+				   y="0"
+				   id="gridLayer">
+	</map:GridLayer>
+	<map:ObjectsLayer id="objectsLayer">
+		
+	</map:ObjectsLayer>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+
+	<fx:Script>
+		<![CDATA[
+			import Data.AllRefs;
+			
+			import flash.utils.getTimer;
+			
+			import map.BackgroundImage;
+			import map.ChangMap;
+			import map.NPC;
+			import map.ObjectView;
+
+			//地图宽度
+			public var mapWidth : Number = 1920;
+			//地图高度
+			public var mapHeight : Number = 1080;
+			//背景颜色
+			private var bgColor : uint = 0;
+			//当前选择目标
+			public var nowSelect:ObjectView;
+
+			/**
+			 * 
+			 * 初始化
+			 * */
+			private function init() : void
+			{
+				AllRefs.gridLayer = this.gridLayer;
+
+			}
+
+			/**
+			 * 	设置背景图片
+			 **/ 
+			public function setBackground(param1 : String) : void
+			{
+				AllRefs.backgroundFilePath = param1;
+				this.backGround.setBackground(param1);
+				
+			} 
+
+			/**
+			 * 添加地表元素
+			 **/
+			public function addBackgroundObject(param : String) : void
+			{
+				backGround.backGroundImage.source = param;
+			} 
+
+			public function reSetSize(param1 : uint, param2 : uint, param3 : Number, param4 : Number) : void
+			{
+				this.mapWidth = param1;
+				this.mapHeight = param2;
+
+
+				AllRefs.mapMaker.mapAreaGroup.width = this.mapWidth + param3 /* AllRefs.allGridWidth */;
+				AllRefs.mapMaker.mapAreaGroup.height = this.mapHeight + param4 /* AllRefs.allGridHeight */;
+
+				AllRefs.mapMaker.resetSize();
+				this.x = ( /* AllRefs.allGridWidth */AllRefs.mapMaker.mapAreaGroup.width - this.mapWidth) / 2;
+				this.y = ( /* AllRefs.allGridHeight */AllRefs.mapMaker.mapAreaGroup.height - this.mapHeight) / 2;
+				
+			} 
+
+			public function set backgroundColor(param1 : uint) : void
+			{
+				this.bgColor = param1;
+				AllRefs.mapMaker.mapBoxCon2.setStyle("backgroundColor", "#" + param1.toString(16));
+			} 
+
+			public function get backgroundColor() : uint
+			{
+				return this.bgColor;
+			} 
+
+			public function changeGridLevel() : void
+			{
+				AllRefs.isGridOnTop = !AllRefs.isGridOnTop;
+				if (AllRefs.isGridOnTop == true)
+				{
+					this.setElementIndex(this.gridLayer, (this.numElements - 1));
+				}
+				else
+				{
+					this.setElementIndex(this.gridLayer, 1);
+				}
+				
+			} 
+
+			/**
+			 *	添加NPC 
+			 **/
+			public function addNPC(param1:String) : NPC
+			{
+				return this.objectsLayer.addNPC(param1);
+			}
+			
+			/**
+			 * 	添加转场
+			 **/ 
+			public function addChangMap(param1:String) : ChangMap
+			{
+				return this.objectsLayer.addChangMap(param1);
+			}
+			
+			/**
+			 * 	设置选择对象
+			 * */
+			public function set selectObj(param1:ObjectView) : void
+			{
+				if (this.nowSelect != null)
+				{
+					this.nowSelect.selected = false;
+					
+				}
+				this.nowSelect = param1;
+				this.nowSelect.selected = true;
+				AllRefs.mapMaker.updateXYInfo(param1 as ObjectView);
+				AllRefs.mapMaker.initProPanel(param1);
+				
+				if(this.nowSelect is NPC)
+				{
+					AllRefs.mapMaker.NPCSetPanelIns.visible = true;
+					AllRefs.mapMaker.NPCSetPanelIns.updateViewData();
+				}
+				else
+				{
+					AllRefs.mapMaker.NPCSetPanelIns.visible = false;
+				}
+			}
+			
+			/**
+			 * 	获取选择对象
+			 */ 
+			public function get selectObj() : ObjectView
+			{
+				return this.nowSelect;
+			}
+			
+			/**
+			 * 	只要有鼠标按下事件都判定为有修改
+			 **/ 
+			protected function group1_mouseDownHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				AllRefs.mapMaker.title = "MapEdit-" + AllRefs.mapDataPath + "*";
+			}
+
+		]]>
+	</fx:Script>
+
+</s:Group>

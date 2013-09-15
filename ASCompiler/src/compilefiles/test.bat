@@ -1,1 +1,0 @@
-bin\mxmlc Game.as
